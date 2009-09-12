@@ -23,9 +23,21 @@ def safe_form_view(request):
         </form>
     """ % form.as_p())
 
+@csrf_protect
 def hand_rolled(request):
     if request.method == 'POST':
-        pass # TODO: Finish this
+        csrf_token = request.POST.get('_csrf_token', '')
+        if not csrf_utils.validate_csrf_token(csrf_token, request):
+            return HttpResponse('Invalid CSRF token')
+        else:
+            return HttpResponse('OK')
+    else:
+        return HttpResponse("""
+        <form action="." method="post">
+        <input type="text" name="name">
+        <input type="hidden" name="_csrf_token" value="%s">
+        </form>
+        """ % csrf_utils.new_csrf_token(request))
 
 urlpatterns = patterns('',
     (r'^safe-basic-form/$', safe_form_view),

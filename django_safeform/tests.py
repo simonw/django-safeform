@@ -43,9 +43,24 @@ class SafeBasicFormTest(TestCase):
         })
         self.assert_(CSRF_INVALID_MESSAGE in response.content)
 
-#class HandRolledFormsTest(TestCase):
-#    
-#    urls = 'django_safeform.test_views'
-#    
-#    def test_hand_rolled_forms_can_be_protected(self):
-#        self.fail()
+class HandRolledFormsTest(TestCase):
+    
+    urls = 'django_safeform.test_views'
+    
+    def test_hand_rolled_forms_can_be_protected(self):
+        response = self.client.get('/hand-rolled/')
+        self.assert_(response.cookies.has_key('_csrf_cookie'))
+        inputs = extract_input_tags(response.content)
+        self.assert_(inputs.has_key('_csrf_token'))
+        
+        response2 = self.client.post('/hand-rolled/', {
+            '_csrf_token': 'bad',
+            'name': 'Test',
+        })
+        self.assertEqual(response2.content, 'Invalid CSRF token')
+        
+        response3 = self.client.post('/hand-rolled/', {
+            '_csrf_token': inputs['_csrf_token'],
+            'name': 'Test',
+        })
+        self.assertEqual(response3.content, 'OK')
