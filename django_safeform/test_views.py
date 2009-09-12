@@ -1,9 +1,7 @@
 from django.conf.urls.defaults import patterns
-from django_safeform import csrf_utils
 from django import forms
 from django.http import HttpResponse, HttpResponseRedirect
-from django_safeform.forms import SafeForm
-from django_safeform.decorators import csrf_protect
+from django_safeform import SafeForm, csrf_protect, csrf_utils
 
 class BasicForm(forms.Form):
     name = forms.CharField(max_length = 100)

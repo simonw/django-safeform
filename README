@@ -1,5 +1,50 @@
+django_safeform
+===============
+
+CSRF protection for Django implemented at the form level - no middleware 
+required.
+
+There are two steps to protecting a django.forms form:
+
+1. Wrap it with the SafeForm class decorator. This adds a hidden _csrf_token 
+   field to it along with validation logic for checking if that token has 
+   the correct value. It also changes the signature of the form class 
+   slightly, see example below.
+2. Apply the @csrf_protect middleware to the view containing the form. This 
+   ensures that a _csrf_cookie is correctly set.
+
+Example usage
+-------------
+
+    from django import forms
+    from django.http import HttpResponse
+    from django.shortcuts import render_to_response
+    from django_safeform import SafeForm, csrf_protect
+    
+    class ChangePasswordForm(forms.Form):
+        password = forms.CharField(widget = forms.PasswordInput)
+        password2 = forms.CharField(widget = forms.PasswordInput)
+    
+    ChangePasswordForm = SafeForm(ChangePasswordForm)
+    
+    @csrf_protect
+    def change_password(request):
+        form = ChangePasswordForm(request) # A
+        if form.is_valid(): # B
+            # ... change the user's password here
+            return HttpResponse('Thank you')
+        return render_to_response('change_password.html', {
+            'form': form,
+        })
+
+A: Note that we pass the whole request object to the constructor, instead of
+   just passing request.POST.
+
+B: A pleasant side-effect of SafeForm is that you no longer need to check to 
+   see if request.method == 'POST' - SafeForm handles this for you.
+
 Design goals
-============
+------------
 
 Apps shipped with Django, in particular the admin, MUST be secure against CSRF 
 no matter what the user's configuration is (so dependency on middleware alone 
@@ -14,7 +59,7 @@ Should not require the form framework - hand-rolled forms should be easy to
 protect too.
 
 Alternative approaches
-======================
+----------------------
 
 Pure middleware:
 - breaks with etags
