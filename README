@@ -58,6 +58,14 @@ Should not be tied to sessions - some developers might not be using them.
 Should not require the form framework - hand-rolled forms should be easy to 
 protect too.
 
+Todo
+----
+
+* Ensure everything works when using custom templates to render the form
+* Test this works with ModelForms
+* Figure out how this will work with FormSets
+* Document how to use this with hand-rolled forms (not using django.forms)
+
 Alternative approaches
 ----------------------
 
