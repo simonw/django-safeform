@@ -16,6 +16,7 @@ Things to test:
 from django.test import TestCase
 from django_safeform import csrf_utils
 from django_safeform.test_utils import extract_input_tags
+from django_safeform.forms import CSRF_INVALID_MESSAGE
 
 class SafeBasicFormTest(TestCase):
     urls = 'django_safeform.test_views'
@@ -34,6 +35,13 @@ class SafeBasicFormTest(TestCase):
             'name': 'Test',
         })
         self.assertEqual(response2.content, 'Valid: Test')
+    
+    def test_submission_with_bad_token_fails(self):
+        response = self.client.post('/safe-basic-form/', {
+            '_csrf_token': 'bad-taken',
+            'name': 'Test',
+        })
+        self.assert_(CSRF_INVALID_MESSAGE in response.content)
 
 #class HandRolledFormsTest(TestCase):
 #    
