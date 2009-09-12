@@ -1,0 +1,43 @@
+"""
+Things to test:
+
+1. That a form can be wrapped in a SafeForm
+2. Error if cookie not present
+3. Error if cookie present but altered
+4. Error if csrf form value is incorrect
+5. Error if csrf form value is tampered with
+6. Error if csrf form value is more than CSRF_TOKEN_EXPIRES old
+7. That SafeForm works with ModelForms, FormSets and so on
+8. That a cookie is set by the decorator
+9. That hand-rolled forms can be neatly protected as well
+10. Form identifiers can be used to tie CSRF tokens to an individual form
+"""
+
+from django.test import TestCase
+from django_safeform import csrf_utils
+from django_safeform.test_utils import extract_input_tags
+
+class SafeBasicFormTest(TestCase):
+    urls = 'django_safeform.test_views'
+    
+    def test_cookie_is_set(self):
+        response = self.client.get('/safe-basic-form/')
+        self.assert_(response.cookies.has_key('_csrf_cookie'))
+    
+    def test_submission_with_correct_csrf_token_works(self):
+        response = self.client.get('/safe-basic-form/')
+        inputs = extract_input_tags(response.content)
+        self.assert_(inputs.has_key('_csrf_token'))
+        token = inputs['_csrf_token']
+        response2 = self.client.post('/safe-basic-form/', {
+            '_csrf_token': token,
+            'name': 'Test',
+        })
+        self.assertEqual(response2.content, 'Valid: Test')
+
+#class HandRolledFormsTest(TestCase):
+#    
+#    urls = 'django_safeform.test_views'
+#    
+#    def test_hand_rolled_forms_can_be_protected(self):
+#        self.fail()

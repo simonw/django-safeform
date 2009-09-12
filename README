@@ -1,0 +1,30 @@
+Design goals
+============
+
+Apps shipped with Django, in particular the admin, MUST be secure against CSRF 
+no matter what the user's configuration is (so dependency on middleware alone 
+is a problem).
+
+Secure by default for user code would be nice, but in its absence explicitly 
+raising developer awareness of CSRF is probably a good thing.
+
+Should not be tied to sessions - some developers might not be using them.
+
+Should not require the form framework - hand-rolled forms should be easy to 
+protect too.
+
+Alternative approaches
+======================
+
+Pure middleware:
+- breaks with etags
+- rewrites HTML
+- doesn't work with streaming
+- you have to decorate things as exempt
+- potential leakage of external forms
+- XHTML v.s. HTML
+
+Middleware and template tags and RequestContext:
+- uses a view decorator
+- applying by default is error prone
+- if user disables middleware, admin becomes insecure
