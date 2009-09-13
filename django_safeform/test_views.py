@@ -67,6 +67,13 @@ def safe_form_custom_message_view(request):
         return HttpResponse('Valid')
     return HttpResponse(form.as_p())
 
+@csrf_protect
+def safe_form_ajax_skips_false_view(request):
+    form = SafeForm(BasicForm, ajax_skips_check=False)(request)
+    if form.is_valid():
+        return HttpResponse('Valid')
+    return HttpResponse(form.as_p())
+
 #@csrf_protect
 #def safe_formset_view(request):
 #    class Choice(forms.Form):
@@ -79,5 +86,6 @@ urlpatterns = patterns('',
     (r'^two-forms/$', two_forms_view),
 #    (r'^safe-formset/$', safe_formset_view),
     (r'^safe-form-custom-message/$', safe_form_custom_message_view),
+    (r'^safe-form-ajax-skips-false/$', safe_form_ajax_skips_false_view),    
     (r'^hand-rolled/$', hand_rolled_view),
 )

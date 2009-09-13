@@ -49,6 +49,19 @@ class SafeBasicFormTest(TestCase):
             'name': 'Test',
         })
         self.assert_('Oh no!' in response.content)
+    
+    def test_ajax_submission_skips_csrf_check(self):
+        response = self.client.post('/safe-basic-form/', {
+            'name': 'Test',
+        }, HTTP_X_REQUESTED_WITH = 'XMLHttpRequest')
+        self.assertEqual(response.content, 'Valid: Test')
+    
+    def test_ajax_submission_fails_check_if_ajax_skips_check_is_false(self):
+        response = self.client.post('/safe-form-ajax-skips-false/', {
+            'name': 'Test',
+        }, HTTP_X_REQUESTED_WITH = 'XMLHttpRequest')
+        self.assert_(CSRF_INVALID_MESSAGE in response.content)
+
 
 class MultipleFormsTest(TestCase):
     urls = 'django_safeform.test_views'

@@ -47,11 +47,11 @@ def SafeForm(form_class,
                 # successfully resubmit it. This means we need to include a 
                 # freshly generated CSRF token in the hidden form field for 
                 # when the form is redisplayed with the validation error.
-                #if not (ajax_skips_check and self.request.is_ajax()):
-                self.data._mutable = True
-                self.data['csrf_token'] = new_csrf_token(self.request)
-                self.data._mutable = False
-                raise forms.ValidationError(invalid_message)
+                if not (ajax_skips_check and self.request.is_ajax()):
+                    self.data._mutable = True
+                    self.data['csrf_token'] = new_csrf_token(self.request)
+                    self.data._mutable = False
+                    raise forms.ValidationError(invalid_message)
             return cleaned_data
     
     return wraps(form_class, updated=())(InnerSafeForm)
