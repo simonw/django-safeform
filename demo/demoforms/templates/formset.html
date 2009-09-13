@@ -1,0 +1,14 @@
+<form action="." method="post">
+    {{ csrf_form.non_field_errors }}
+    {% for form in formset.forms %}
+        {{ form.as_p }}
+        <hr>
+    {% endfor %}
+    <p>
+        {{ formset.management_form }}
+        {{ csrf_form.csrf_token }}
+        <input type="submit">
+    </p>
+</form>
+Current cookie is: {{ csrf_cookie }} (<a href="/clear/">clear</a>)<br>
+(Cookie headers may have been sent with this response)

@@ -55,3 +55,9 @@ def SafeForm(form_class,
             return cleaned_data
     
     return wraps(form_class, updated=())(InnerSafeForm)
+
+class CsrfForm(forms.Form):
+    def __unicode__(self):
+        # Default rendering should output the error list or nothing at all
+        return self.as_p()
+CsrfForm = SafeForm(CsrfForm)

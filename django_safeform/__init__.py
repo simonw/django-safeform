@@ -1,2 +1,2 @@
 from decorators import csrf_protect
-from forms import SafeForm
+from forms import SafeForm, CsrfForm

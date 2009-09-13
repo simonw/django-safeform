@@ -2,7 +2,7 @@ from django.conf.urls.defaults import patterns
 from django import forms
 from django.forms.formsets import formset_factory
 from django.http import HttpResponse, HttpResponseRedirect
-from django_safeform import SafeForm, csrf_protect, csrf_utils
+from django_safeform import SafeForm, csrf_protect, csrf_utils, CsrfForm
 
 class BasicForm(forms.Form):
     name = forms.CharField(max_length = 100)
@@ -74,17 +74,39 @@ def safe_form_ajax_skips_false_view(request):
         return HttpResponse('Valid')
     return HttpResponse(form.as_p())
 
-#@csrf_protect
-#def safe_formset_view(request):
-#    class Choice(forms.Form):
-#        choice = forms.CharField()
-#        votes = forms.IntegerField()
-#    ChoiceFormSet = formset_factory(Choice)
+class PersonForm(forms.Form):
+    name = forms.CharField(max_length = 100)
+    email = forms.EmailField()
+
+PersonFormSet = formset_factory(PersonForm, extra=3)
+
+@csrf_protect
+def safe_formset_view(request):
+    csrf_form = CsrfForm(request)
+    formset = PersonFormSet()
+    if request.method == 'POST':
+        formset = PersonFormSet(request.POST)
+        if csrf_form.is_valid() and formset.is_valid():
+            return HttpResponse('Valid: %s' % ', '.join([
+                '%(name)s [%(email)s]' % form.cleaned_data 
+                for form in formset.forms
+                if form.cleaned_data
+            ]))
+    return HttpResponse("""
+        <form action="." method="post">
+        %s %s %s
+        <p><input type="submit"></p>
+        </form>
+    """ % (
+        csrf_form,
+        ''.join([f.as_p() for f in formset.forms]),
+        formset.management_form
+    ))
 
 urlpatterns = patterns('',
     (r'^safe-basic-form/$', safe_form_view),
     (r'^two-forms/$', two_forms_view),
-#    (r'^safe-formset/$', safe_formset_view),
+    (r'^safe-formset/$', safe_formset_view),
     (r'^safe-form-custom-message/$', safe_form_custom_message_view),
     (r'^safe-form-ajax-skips-false/$', safe_form_ajax_skips_false_view),    
     (r'^hand-rolled/$', hand_rolled_view),

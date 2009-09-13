@@ -1,13 +1,15 @@
 from django import forms
+from django.forms.formsets import formset_factory
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
-from django_safeform.forms import SafeForm
-from django_safeform.decorators import csrf_protect
-from django_safeform import csrf_utils
+from django_safeform import SafeForm, csrf_protect, csrf_utils, CsrfForm
 
 class SimpleForm(forms.Form):
     name = forms.CharField(max_length = 100)
 SafeSimpleForm = SafeForm(SimpleForm)
+
+class OtherForm(forms.Form):
+    email = forms.EmailField()
 
 @csrf_protect
 def index(request):
@@ -65,13 +67,53 @@ def custom_message(request):
         return HttpResponse('Valid')
     return HttpResponse('<form action="." method="post">' + form.as_p())
 
+@csrf_protect
+def multiple_forms(request):
+    csrf_form = CsrfForm(request)
+    simple_form = SimpleForm()
+    other_form = OtherForm()
+    if request.method == 'POST':
+        simple_form = SimpleForm(request.POST)
+        other_form = OtherForm(request.POST)
+        if csrf_form.is_valid() and \
+            simple_form.is_valid() and other_form.is_valid():
+            return HttpResponse('Valid: %s, %s' % (
+                simple_form.cleaned_data['name'],
+                other_form.cleaned_data['email'],
+            ))
+    
+    return render_to_response('multiple_forms.html', {
+        'csrf_form': csrf_form,
+        'simple_form': simple_form,
+        'other_form': other_form,
+        'csrf_cookie': request.COOKIES.get('_csrf_cookie', 'NOT SET'),
+    })
+
+class PersonForm(forms.Form):
+    name = forms.CharField(max_length = 100)
+    email = forms.EmailField()
+
+PersonFormSet = formset_factory(PersonForm, extra=3)
+
+@csrf_protect
+def formset(request):
+    csrf_form = CsrfForm(request)
+    formset = PersonFormSet()
+    if request.method == 'POST':
+        formset = PersonFormSet(request.POST)
+        if csrf_form.is_valid() and formset.is_valid():
+            return HttpResponse('Valid: %s' % ', '.join([
+                '%(name)s [%(email)s]' % form.cleaned_data 
+                for form in formset.forms
+                if form.cleaned_data
+            ]))
+    return render_to_response('formset.html', {
+        'csrf_form': csrf_form,
+        'formset': formset,
+        'csrf_cookie': request.COOKIES.get('_csrf_cookie', 'NOT SET'),
+    })
+
 def clear(request):
     response = HttpResponseRedirect('/')
     response.delete_cookie('_csrf_cookie')
     return response
-
-class Request:
-    def __init__(self, post = None, cookies = None):
-        self.COOKIES = cookies or {}
-        self.POST = post or {}
-        self.method = self.POST and 'POST' or 'GET'

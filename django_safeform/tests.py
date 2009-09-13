@@ -62,15 +62,36 @@ class SafeBasicFormTest(TestCase):
         }, HTTP_X_REQUESTED_WITH = 'XMLHttpRequest')
         self.assert_(CSRF_INVALID_MESSAGE in response.content)
 
-
 class MultipleFormsTest(TestCase):
     urls = 'django_safeform.test_views'
     
-    def test_two_forms_does_not_result_in_duplicate_element_ids(self):
+    def test_two_safe_forms_does_not_result_in_duplicate_element_ids(self):
         response = self.client.get('/two-forms/')
         input_attrs = test_utils.extract_input_tag_attrs(response.content)
         ids = [d['id'] for d in input_attrs if 'id' in d]
         self.assertEqual(len(ids), len(set(ids)), 'Duplicate IDs in %s' % ids)
+
+class CsrfFormTest(TestCase):
+    urls = 'django_safeform.test_views'
+    
+    def test_csrf_form_can_protect_formsets(self):
+        response = self.client.get('/safe-formset/')
+        hiddens = test_utils.extract_input_tags(response.content)
+        self.assert_('csrf_token' in hiddens)
+        
+        data = dict(hiddens)
+        data['form-0-name'] = 'Simon'
+        data['form-0-email'] = 'simon@example.com'
+        data['form-1-name'] = 'Bob'
+        data['form-1-email'] = 'bob@example.com'
+        response2 = self.client.post('/safe-formset/', data)
+        self.assertEqual(response2.content,
+            'Valid: Simon [simon@example.com], Bob [bob@example.com]'
+        )
+        
+        data['csrf_token'] = 'invalid-token'
+        response3 = self.client.post('/safe-formset/', data)
+        self.assert_(CSRF_INVALID_MESSAGE in response3.content)
 
 class HandRolledFormsTest(TestCase):
     urls = 'django_safeform.test_views'

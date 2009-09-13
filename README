@@ -41,7 +41,8 @@ A: Note that we pass the whole request object to the constructor, instead of
    just passing request.POST.
 
 B: A pleasant side-effect of SafeForm is that you no longer need to check to 
-   see if request.method == 'POST' - SafeForm handles this for you.
+   see if request.method == 'POST' in order to decide whether or not to bind 
+   a form to a set of input data - SafeForm handles this for you.
 
 Custom form templates
 ---------------------
@@ -100,6 +101,88 @@ request.POST - you can still add CSRF protection to your forms using the
 It is your responsibility to include a hidden form field with the value from 
 csrf_utils.new_csrf_token(request) in your form, and to check that token when 
 the form is submitted using csrf_utils.validate_csrf_token.
+
+You could also use CsrfForm to protect hand-written forms, as explained in 
+the next section.
+
+Protecting formsets / multiple forms on the same page
+-----------------------------------------------------
+
+If you have multiple forms on the page and they are each contained in separate
+<form> elements, you should ensure each one has a csrf_token field, most 
+likely by configuring each one using the SafeForm class decorator.
+
+If you have multiple django.forms forms within a single <form> element (for 
+example, if you are using formsets) you still only need to include a single 
+csrf_token field for the overall form. In this case, rather than applying the 
+SafeForm decorator to each of the form classes, it makes more sense to have a 
+single standalone SafeForm instance within the overall form. The CsrfForm 
+class is designed to handle this exact use-case. Here's how to use it:
+    
+    from django import forms
+    from django.forms.formsets import formset_factory
+    from django_safeform import csrf_protect, CsrfForm
+    from django.http import HttpResponse
+    
+    class PersonForm(forms.Form):
+        name = forms.CharField(max_length = 100)
+        email = forms.EmailField()
+    
+    PersonFormSet = formset_factory(PersonForm, extra=3)
+    
+    @csrf_protect
+    def formset(request):
+        csrf_form = CsrfForm(request)
+        formset = PersonFormSet()
+        if request.method == 'POST':
+            formset = PersonFormSet(request.POST)
+            if csrf_form.is_valid() and formset.is_valid():
+                return HttpResponse('Valid: %s' % ', '.join([
+                    '%(name)s [%(email)s]' % form.cleaned_data 
+                    for form in formset.forms
+                    if form.cleaned_data
+                ]))
+        return render_to_response('formset.html', {
+            'csrf_form': csrf_form,
+            'formset': formset,
+        })
+
+The formset is used in the same way as usual. The CSRF protection is 
+implemented entirely by the separate CsrfForm instance. In the template, the 
+CsrfForm should be output using {{ csrf_form }} like this:
+
+    <form action="." method="post">
+        {{ csrf_form }}
+        {% for form in formset.forms %}
+            {{ form.as_p }}
+        {% endfor %}
+        <p>
+            {{ formset.management_form }}
+            <input type="submit">
+        </p>
+    </form>
+
+The {{ csrf_form }} template tag specifies where the hidden input field 
+containing the form token should be included. Should a CSRF failure occur, it 
+also specifies where the <ul class="errorlist"> containing the CSRF failure 
+message should be displayed.
+
+If you want to include the hidden input field in a different location to the 
+error message, you can use {{ csrf_form.csrf_token }} to output the hidden 
+field and {{ csrf_form.non_field_errors }} to output the error message:
+
+    <form action="." method="post">
+        {{ csrf_form.non_field_errors }}
+        {% for form in formset.forms %}
+            {{ form.as_p }}
+        {% endfor %}
+        <p>
+            {{ formset.management_form }}
+            {{ csrf_form.csrf_token }}
+            <input type="submit">
+        </p>
+    </form>
+
 
 Changing the CSRF error message
 -------------------------------
@@ -160,11 +243,6 @@ The original idea was to have an alternative Form base class called SafeForm -
 this was replaced with a class decorator when we realised that we would 
 otherwise also need to provide SafeModelForm, SafeFormSet and so on.
 
-Todo
-----
-
-* Create CsrfForm, for use with FormSets / other multi-form scenarios
-
 Alternative approaches
 ----------------------
 
@@ -180,3 +258,4 @@ Middleware and template tags and RequestContext:
 - uses a view decorator
 - applying by default is error prone
 - if user disables middleware, admin becomes insecure
+- requires RequestContext
