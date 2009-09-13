@@ -17,6 +17,7 @@ from django.test import TestCase
 from django_safeform import csrf_utils
 from django_safeform import test_utils
 from django_safeform.forms import CSRF_INVALID_MESSAGE
+import datetime
 
 class SafeBasicFormTest(TestCase):
     urls = 'django_safeform.test_views'
@@ -133,7 +134,62 @@ class IdentifierTest(TestCase):
         token = test_utils.extract_input_tags(response.content)['csrf_token']
         self.assert_(token.startswith('identifier-form:'))
         response = self.client.post('/identifier-form/', {
-            'name': 'Test',
+            'name': 'Test 2',
             'csrf_token': token,
         })
-        self.assertEqual(response.content, 'Valid: Test')
+        self.assertEqual(response.content, 'Valid: Test 2')
+
+class ExpireAfterTest(TestCase):
+    urls = 'django_safeform.test_views'
+    
+    def fetch_token(self, fake):
+        @test_utils.fake_utcnow(fake)
+        def inner():
+            r = self.client.get('/safe-basic-form/')
+            return test_utils.extract_input_tags(r.content)['csrf_token']
+        return inner()
+    
+    def test_fake_utcnow_monkey_patch(self):
+        token = self.fetch_token(datetime.datetime(1970, 1, 1, 0, 0, 0, 0))
+        self.assert_(token.startswith('default:0:'), token)
+    
+    def test_expires_after_argument_causes_token_to_expire(self):
+        token = self.fetch_token(datetime.datetime(2009, 1, 1, 0, 0, 0))
+        @test_utils.fake_utcnow(datetime.datetime(2009, 1, 1, 0, 0, 59))
+        def submission_should_succeed():
+            response = self.client.post('/expire-after-60-seconds/', {
+                'name': 'Test',
+                'csrf_token': token,
+            })
+            self.assertEqual(response.content, 'Valid: Test')
+        submission_should_succeed()
+        
+        @test_utils.fake_utcnow(datetime.datetime(2009, 1, 1, 0, 1, 1))
+        def submission_should_fail():
+            response = self.client.post('/expire-after-60-seconds/', {
+                'name': 'Test',
+                'csrf_token': token,
+            })
+            self.assert_(CSRF_INVALID_MESSAGE in response.content)
+        submission_should_fail()
+    
+    def test_expires_after_default_is_set_by_global_settings_py(self):
+        token = self.fetch_token(datetime.datetime(2009, 1, 1, 0, 0, 0))
+        # Test pretends to run 2 days later
+        @test_utils.fake_utcnow(datetime.datetime(2009, 1, 3, 0, 0, 0))
+        def inner():
+            response = self.client.post('/safe-basic-form/', {
+                'name': 'Test',
+                'csrf_token': token,
+            })
+            self.assertEqual(response.content, 'Valid: Test')
+            # Now monkey patch the settings
+            from django.conf import settings
+            settings.CSRF_TOKENS_EXPIRE_AFTER = 24 * 60 * 60
+            response = self.client.post('/safe-basic-form/', {
+                'name': 'Test',
+                'csrf_token': token,
+            })
+            self.assert_(CSRF_INVALID_MESSAGE in response.content)
+            settings.CSRF_TOKENS_EXPIRE_AFTER = None
+        inner()

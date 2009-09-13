@@ -256,10 +256,6 @@ new_csrf_token and validate_csrf_token functions:
     if not token_ok:
         return HttpResponse('Invalid CSRF token')
 
-When a token expires, the user will see the CSRF error message described above
-but will not lose their form submission, so don't worry too much about the 
-consequences of setting a strict timeout.
-
 To cause your form tokens to expire, use the expire_after argument in your 
 call to the SafeForm class decorator:
 
@@ -268,7 +264,7 @@ call to the SafeForm class decorator:
         expire_after=24 * 60 * 60 # Expire after 24 hours
     )
 
-Using csrf_utils directly, pass that argument to the validate_csrf_token 
+If using csrf_utils directly, pass that argument to the validate_csrf_token 
 function:
 
     token_ok = csrf_utils.validate_csrf_token(
@@ -280,6 +276,10 @@ which defaults to None. If you want all of your CSRF tokens to expire, add
 this to your settings.py file:
 
     CSRF_TOKENS_EXPIRE_AFTER = 24 * 60 * 60
+
+When a token expires, the user will see the CSRF error message described above
+but will not lose their form submission, so don't worry too much about the 
+consequences of setting a strict timeout.
 
 Design notes
 ------------
@@ -299,11 +299,6 @@ protect too.
 The original idea was to have an alternative Form base class called SafeForm - 
 this was replaced with a class decorator when we realised that we would 
 otherwise also need to provide SafeModelForm, SafeFormSet and so on.
-
-TODO
-----
-
-* Add, test and document settings for expiring tokens after a certain time
 
 Alternative approaches
 ----------------------

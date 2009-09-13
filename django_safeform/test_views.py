@@ -108,6 +108,12 @@ def identifier_form_view(request):
         return HttpResponse('Valid: %s' % form.cleaned_data['name'])
     return HttpResponse(form.as_p())
 
+@csrf_protect
+def expire_after_60_seconds_form_view(request):
+    form = SafeForm(BasicForm, expire_after=60)(request)
+    if form.is_valid():
+        return HttpResponse('Valid: %s' % form.cleaned_data['name'])
+    return HttpResponse(form.as_p())
 
 urlpatterns = patterns('',
     (r'^safe-basic-form/$', safe_form_view),
@@ -117,4 +123,5 @@ urlpatterns = patterns('',
     (r'^safe-form-ajax-skips-false/$', safe_form_ajax_skips_false_view),    
     (r'^hand-rolled/$', hand_rolled_view),
     (r'^identifier-form/$', identifier_form_view),
+    (r'^expire-after-60-seconds/$', expire_after_60_seconds_form_view),
 )

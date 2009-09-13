@@ -17,10 +17,13 @@ class HiddenInputNoId(forms.HiddenInput):
             del attrs['id']
         return super(HiddenInputNoId, self).render(name, value, attrs)
 
+not_set = object()
+
 def SafeForm(form_class,
         identifier='default',
         invalid_message=CSRF_INVALID_MESSAGE,
-        ajax_skips_check=True
+        ajax_skips_check=True,
+        expire_after=not_set
     ):
     class InnerSafeForm(form_class):
         def __init__(self, request, *args, **kwds):
@@ -45,8 +48,11 @@ def SafeForm(form_class,
         def clean(self):
             cleaned_data = super(InnerSafeForm, self).clean()
             token = cleaned_data.get('csrf_token', '')
+            kwargs = dict(identifier=identifier)
+            if expire_after is not not_set:
+                kwargs['expire_after'] = expire_after
             if not token or not validate_csrf_token(
-                    token, self.request, identifier=identifier
+                    token, self.request, **kwargs
                 ):
                 # Our form is "in flight", and we want the user to be able to 
                 # successfully resubmit it. This means we need to include a 
