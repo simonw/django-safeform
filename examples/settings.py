@@ -11,7 +11,7 @@ DATABASE_PASSWORD = ''
 DATABASE_HOST = ''
 DATABASE_PORT = ''
 
-TIME_ZONE = 'UTC' # Less surprises when doing time-related unit tests
+TIME_ZONE = 'UTC'
 
 LANGUAGE_CODE = 'en-us'
 

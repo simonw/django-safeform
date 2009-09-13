@@ -149,10 +149,6 @@ class ExpireAfterTest(TestCase):
             return test_utils.extract_input_tags(r.content)['csrf_token']
         return inner()
     
-    def test_fake_utcnow_monkey_patch(self):
-        token = self.fetch_token(datetime.datetime(1970, 1, 1, 0, 0, 0, 0))
-        self.assert_(token.startswith('default:0:'), token)
-    
     def test_expires_after_argument_causes_token_to_expire(self):
         token = self.fetch_token(datetime.datetime(2009, 1, 1, 0, 0, 0))
         @test_utils.fake_utcnow(datetime.datetime(2009, 1, 1, 0, 0, 59))
