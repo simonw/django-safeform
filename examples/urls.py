@@ -8,5 +8,4 @@ urlpatterns = patterns('',
     (r'^custom-message/$', 'demoforms.views.custom_message'),
     (r'^multiple-forms/$', 'demoforms.views.multiple_forms'),
     (r'^formset/$', 'demoforms.views.formset'),
-
 )

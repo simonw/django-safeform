@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}: Hand rolled form{% endblock %}
+
+{% block content %}
+<form action="." method="post">
+<p>
+    <label>Name:
+    <input type="text" name="name">
+    </label>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="submit">
+</p>
+<p>CSRF cookie is: {{ csrf_cookie }} (<a href="/clear/">clear</a>)<br>
+</form>
+{% endblock %}

@@ -11,25 +11,8 @@ SafeSimpleForm = SafeForm(SimpleForm)
 class OtherForm(forms.Form):
     email = forms.EmailField()
 
-@csrf_protect
 def index(request):
-    form = SafeSimpleForm(request)
-    if form.is_valid():
-        return HttpResponse(
-            'Valid form submitted: %s' % form.cleaned_data['name']
-        )
-    
-    return HttpResponse("""
-        <form action="." method="post">
-        %s
-        <p><input type="submit"></p>
-        </form>
-        Current cookie is: %s (<a href="/clear/">clear</a>)<br>
-        (Cookie headers may have been sent with this response)
-    """ % (
-        form.as_p(),
-        request.COOKIES.get('_csrf_cookie', 'NOT SET'),
-    ))
+    return render_to_response('index.html')
 
 @csrf_protect
 def templated(request):
@@ -43,7 +26,6 @@ def templated(request):
         'csrf_cookie': request.COOKIES.get('_csrf_cookie', 'NOT SET'),
     })
 
-
 @csrf_protect
 def hand_rolled(request):
     if request.method == 'POST':
@@ -52,20 +34,20 @@ def hand_rolled(request):
             return HttpResponse('Invalid CSRF token')
         else:
             return HttpResponse('OK')
-    else:
-        return HttpResponse("""
-        <form action="." method="post">
-        <input type="text" name="name">
-        <input type="hidden" name="csrf_token" value="%s">
-        </form>
-        """ % csrf_utils.new_csrf_token(request))
+    return render_to_response('hand_rolled.html', {
+        'csrf_token': csrf_utils.new_csrf_token(request),
+        'csrf_cookie': request.COOKIES.get('_csrf_cookie', 'NOT SET'),
+    })
 
 @csrf_protect
 def custom_message(request):
     form = SafeForm(SimpleForm, invalid_message='Oh no!')(request)
     if form.is_valid():
         return HttpResponse('Valid')
-    return HttpResponse('<form action="." method="post">' + form.as_p())
+    return render_to_response('form.html', {
+        'form': form,
+        'csrf_cookie': request.COOKIES.get('_csrf_cookie', 'NOT SET'),
+    })
 
 @csrf_protect
 def multiple_forms(request):

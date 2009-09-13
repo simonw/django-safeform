@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <title>django_safeform examples{% block title %}{% endblock %}</title>
+    <style type="text/css">
+    body {
+        font-family: helvetica;
+        margin: 0;
+        padding: 0;
+    }
+    #nav {
+        border-bottom: 1px solid black;
+        clear: both;
+        overflow: hidden;
+        margin: 0;
+        padding: 4px;
+    }
+    #nav li {
+        display: inline;
+        list-style-type: none;
+        margin: 0;
+        padding: 0 2em 0 0;
+    }
+    #nav a {
+        text-decoration: none;
+    }
+    #wrapper, #debug {
+        margin: 2em;
+    }
+    </style>
+    <script type="text/javascript">
+    function get_csrf_token_fields() {
+        var fields = [];
+        var inputs = document.getElementsByTagName('input');
+        for (var input, i = 0; input = inputs[i]; i++) {
+            if (input.name == 'csrf_token') {
+                fields[fields.length] = input;
+            }
+        }
+        return fields;
+    }
+    window.onload = function() {
+        // Add UI to make csrf_token field editable
+        if (get_csrf_token_fields().length == 0) {
+            return;
+        }
+        var div = document.getElementById('debug');
+        var a = document.createElement('a');
+        a.href = '#';
+        a.onclick = makeCsrfTokensEditable;
+        a.innerHTML = 'Show hidden CSRF token field';
+        div.appendChild(a);
+    };
+    function makeCsrfTokensEditable() {
+        var inputs = get_csrf_token_fields();
+        for (var input, i = 0; input = inputs[i]; i++) {
+            var editable = document.createElement('input');
+            editable.type = 'text';
+            editable.name = 'csrf_token';
+            editable.value = input.value;
+            editable.style.color = '#666';
+            editable.style.display = 'block';
+            editable.style.width = '40em';
+            input.parentNode.appendChild(editable);
+            input.parentNode.removeChild(input);
+        }
+        return false;
+    }
+    </script>
+</head>
+<body>
+<ul id="nav">
+    <li><a href="/">home</a></li>
+    <li><a href="/templated/">form</a></li>
+    <li><a href="/formset/">formset</a></li>
+    <li><a href="/hand-rolled/">hand-rolled</a></li>
+    <li><a href="/multiple-forms/">multiple-forms</a></li>
+    <li><a href="/custom-message/">custom-message</a></li>
+</ul>
+<div id="wrapper">
+{% block content %}
+
+{% endblock %}
+</div>
+<div id="debug"></div>
+</body>
+</html>

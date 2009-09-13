@@ -1,5 +1,3 @@
-# Django settings for demo project.
-
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -63,7 +61,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 )
 
-ROOT_URLCONF = 'demo.urls'
+ROOT_URLCONF = 'examples.urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".

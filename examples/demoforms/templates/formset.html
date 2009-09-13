@@ -1,3 +1,7 @@
+{% extends "base.html" %}
+{% block title %}: Formset{% endblock %}
+
+{% block content %}
 <form action="." method="post">
     {{ csrf_form.non_field_errors }}
     {% for form in formset.forms %}
@@ -10,5 +14,6 @@
         <input type="submit">
     </p>
 </form>
-Current cookie is: {{ csrf_cookie }} (<a href="/clear/">clear</a>)<br>
-(Cookie headers may have been sent with this response)
+CSRF cookie is: {{ csrf_cookie }} (<a href="/clear/">clear</a>)<br>
+{% endblock %}
+    

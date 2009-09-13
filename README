@@ -243,6 +243,13 @@ The original idea was to have an alternative Form base class called SafeForm -
 this was replaced with a class decorator when we realised that we would 
 otherwise also need to provide SafeModelForm, SafeFormSet and so on.
 
+TODO
+----
+
+* Document ./manage.py runserver and ./manage.py test in examples/ as a way 
+  to try out the examples and run the test suite.
+* Add, test and document support for changing the CSRF identifier
+
 Alternative approaches
 ----------------------
 
