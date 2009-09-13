@@ -38,10 +38,17 @@ class SafeBasicFormTest(TestCase):
     
     def test_submission_with_bad_token_fails(self):
         response = self.client.post('/safe-basic-form/', {
-            'csrf_token': 'bad-taken',
+            'csrf_token': 'bad-token',
             'name': 'Test',
         })
         self.assert_(CSRF_INVALID_MESSAGE in response.content)
+    
+    def test_invalid_message_argument_sets_custom_message(self):
+        response = self.client.post('/safe-form-custom-message/', {
+            'csrf_token': 'bad-token',
+            'name': 'Test',
+        })
+        self.assert_('Oh no!' in response.content)
 
 class MultipleFormsTest(TestCase):
     urls = 'django_safeform.test_views'

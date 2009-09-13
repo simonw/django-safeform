@@ -101,6 +101,25 @@ It is your responsibility to include a hidden form field with the value from
 csrf_utils.new_csrf_token(request) in your form, and to check that token when 
 the form is submitted using csrf_utils.validate_csrf_token.
 
+Extra options
+-------------
+
+The default message shown to the user if the CSRF check fails is:
+
+    Form session expired - please resubmit
+
+The wording here is deliberately a bit vague - most users will have no idea 
+what a "CSRF failure" is, but users have probably seen "session expired" 
+messages before. A "form session" seems like a reasonable metaphor for what 
+is going on under the hood.
+
+If you dislike this message, you can over-ride it in your call to the 
+SafeForm class decorator:
+
+    ChangePasswordForm = SafeForm(ChangePasswordForm,
+        invalid_message='CSRF check failed'
+    )
+
 Design notes
 ------------
 
@@ -126,8 +145,6 @@ Todo
 * Create CsrfForm, for use with FormSets / other multi-form scenarios
 * Come up with a solution for Ajax requests (request.is_ajax())
 * Mega paranoid users should be able to turn Ajax protection off?
-* Provide a mechanism for the user to change the error message
-* Both of the above are probably arguments to the SafeForm function
 
 Alternative approaches
 ----------------------

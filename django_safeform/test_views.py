@@ -60,6 +60,13 @@ def two_forms_view(request):
         </form>
     """ % (form1.as_p(), form2.as_p()))
 
+@csrf_protect
+def safe_form_custom_message_view(request):
+    form = SafeForm(BasicForm, invalid_message='Oh no!')(request)
+    if form.is_valid():
+        return HttpResponse('Valid')
+    return HttpResponse(form.as_p())
+
 #@csrf_protect
 #def safe_formset_view(request):
 #    class Choice(forms.Form):
@@ -71,5 +78,6 @@ urlpatterns = patterns('',
     (r'^safe-basic-form/$', safe_form_view),
     (r'^two-forms/$', two_forms_view),
 #    (r'^safe-formset/$', safe_formset_view),
+    (r'^safe-form-custom-message/$', safe_form_custom_message_view),
     (r'^hand-rolled/$', hand_rolled_view),
 )

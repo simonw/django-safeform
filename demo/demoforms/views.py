@@ -58,6 +58,12 @@ def hand_rolled(request):
         </form>
         """ % csrf_utils.new_csrf_token(request))
 
+@csrf_protect
+def custom_message(request):
+    form = SafeForm(SimpleForm, invalid_message='Oh no!')(request)
+    if form.is_valid():
+        return HttpResponse('Valid')
+    return HttpResponse('<form action="." method="post">' + form.as_p())
 
 def clear(request):
     response = HttpResponseRedirect('/')

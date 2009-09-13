@@ -9,4 +9,5 @@ urlpatterns = patterns('',
     (r'^clear/$', 'demoforms.views.clear'),
     (r'^templated/$', 'demoforms.views.templated'),
     (r'^hand-rolled/$', 'demoforms.views.hand_rolled'),
+    (r'^custom-message/$', 'demoforms.views.custom_message'),
 )
