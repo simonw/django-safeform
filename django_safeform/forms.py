@@ -11,6 +11,12 @@ _ = lambda s: s
 
 CSRF_INVALID_MESSAGE = _('Form session expired - please resubmit')
 
+class HiddenInputNoId(forms.HiddenInput):
+    def render(self, name, value, attrs=None):
+        if attrs and 'id' in attrs:
+            del attrs['id']
+        return super(HiddenInputNoId, self).render(name, value, attrs)
+
 def SafeForm(form_class, csrf_identifier='default'):
     class InnerSafeForm(form_class):
         def __init__(self, request, *args, **kwds):
@@ -25,8 +31,8 @@ def SafeForm(form_class, csrf_identifier='default'):
                 kwds['initial'] = initial_data
                 super(InnerSafeForm, self).__init__(*args, **kwds)
             self.fields['csrf_token'] = forms.CharField(
-                widget = forms.HiddenInput,
-                required = False
+                widget = HiddenInputNoId,
+                required = False,
             )
         
         def clean(self):

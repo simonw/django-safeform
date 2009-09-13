@@ -15,7 +15,7 @@ Things to test:
 
 from django.test import TestCase
 from django_safeform import csrf_utils
-from django_safeform.test_utils import extract_input_tags
+from django_safeform import test_utils
 from django_safeform.forms import CSRF_INVALID_MESSAGE
 
 class SafeBasicFormTest(TestCase):
@@ -27,7 +27,7 @@ class SafeBasicFormTest(TestCase):
     
     def test_submission_with_correct_csrf_token_works(self):
         response = self.client.get('/safe-basic-form/')
-        inputs = extract_input_tags(response.content)
+        inputs = test_utils.extract_input_tags(response.content)
         self.assert_(inputs.has_key('csrf_token'))
         token = inputs['csrf_token']
         response2 = self.client.post('/safe-basic-form/', {
@@ -43,14 +43,22 @@ class SafeBasicFormTest(TestCase):
         })
         self.assert_(CSRF_INVALID_MESSAGE in response.content)
 
-class HandRolledFormsTest(TestCase):
+class MultipleFormsTest(TestCase):
+    urls = 'django_safeform.test_views'
     
+    def test_two_forms_does_not_result_in_duplicate_element_ids(self):
+        response = self.client.get('/two-forms/')
+        input_attrs = test_utils.extract_input_tag_attrs(response.content)
+        ids = [d['id'] for d in input_attrs if 'id' in d]
+        self.assertEqual(len(ids), len(set(ids)), 'Duplicate IDs in %s' % ids)
+
+class HandRolledFormsTest(TestCase):
     urls = 'django_safeform.test_views'
     
     def test_hand_rolled_forms_can_be_protected(self):
         response = self.client.get('/hand-rolled/')
         self.assert_(response.cookies.has_key('_csrf_cookie'))
-        inputs = extract_input_tags(response.content)
+        inputs = test_utils.extract_input_tags(response.content)
         self.assert_(inputs.has_key('csrf_token'))
         
         response2 = self.client.post('/hand-rolled/', {
