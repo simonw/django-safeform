@@ -43,6 +43,64 @@ A: Note that we pass the whole request object to the constructor, instead of
 B: A pleasant side-effect of SafeForm is that you no longer need to check to 
    see if request.method == 'POST' - SafeForm handles this for you.
 
+Custom form templates
+---------------------
+
+If your template uses one of the form rendering helper methods such as 
+{{ form.as_p }} the hidden csrf_token field will be output automatically. If 
+you are rendering the form using a custom template you will need to remember 
+to output that field in your template explicitly. Here's an example:
+
+    <form action="/change-password/" method="post">
+        {{ form.non_field_errors }}
+        <div{% if form.password.errors %} class="errors"{% endif %}>
+            <label for="id_password">New password</label>
+            {{ form.password }}
+        </div>
+        <div{% if form.password2.errors %} class="errors"{% endif %}>
+            <label for="id_password2">Confirm password</label>
+            {{ form.password2 }}
+        </div>
+        <div>{{ form.csrf_token }}<input type="submit" value="Change"></div>
+    </form>
+
+Note the {{ form.csrf_token }} replacement variable just before the submit 
+button - this will output a hidden form field containing the correct value.
+
+You should also be sure to include {{ form.non_field_errors }} somewhere in 
+your template - this is where the "Form session expired - please resubmit" 
+message will be displayed should the CSRF check fail for some reason.
+
+Protecting forms that do not use django.forms
+---------------------------------------------
+
+If you are not using the django.forms framework - for example you are writing 
+forms with hand-written HTML and pulling submitted data directly from 
+request.POST - you can still add CSRF protection to your forms using the 
+@csrf_protect decorator in conjunction with the csrf_utils module:
+
+    from django_safeform import csrf_protect, csrf_utils
+    
+    @csrf_protect
+    def hand_rolled(request):
+        if request.method == 'POST':
+            csrf_token = request.POST.get('csrf_token', '')
+            if not csrf_utils.validate_csrf_token(csrf_token, request):
+                return HttpResponse('Invalid CSRF token')
+            else:
+                return HttpResponse('OK')
+        else:
+            return HttpResponse("""
+            <form action="." method="post">
+            <input type="text" name="name">
+            <input type="hidden" name="csrf_token" value="%s">
+            </form>
+            """ % csrf_utils.new_csrf_token(request))
+
+It is your responsibility to include a hidden form field with the value from 
+csrf_utils.new_csrf_token(request) in your form, and to check that token when 
+the form is submitted using csrf_utils.validate_csrf_token.
+
 Design goals
 ------------
 
@@ -63,7 +121,6 @@ Todo
 
 * Test this works with ModelForms
 * Figure out how this will work with FormSets
-* Document how to use this with hand-rolled forms (not using django.forms)
 
 Alternative approaches
 ----------------------
