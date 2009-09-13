@@ -13,6 +13,10 @@ There are two steps to protecting a django.forms form:
 2. Apply the @csrf_protect middleware to the view containing the form. This 
    ensures that a _csrf_cookie is correctly set.
 
+Run "./manage.py runserver" in the examples folder to start a Django server 
+demonstrating the functionality of the library. Use "./manage.py test" in the 
+same directory to run the unit tests.
+
 Example usage
 -------------
 
@@ -246,9 +250,8 @@ otherwise also need to provide SafeModelForm, SafeFormSet and so on.
 TODO
 ----
 
-* Document ./manage.py runserver and ./manage.py test in examples/ as a way 
-  to try out the examples and run the test suite.
 * Add, test and document support for changing the CSRF identifier
+* Add, test and document settings for expiring tokens after a certain time
 
 Alternative approaches
 ----------------------
