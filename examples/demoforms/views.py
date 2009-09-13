@@ -3,6 +3,7 @@ from django.forms.formsets import formset_factory
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django_safeform import SafeForm, csrf_protect, csrf_utils, CsrfForm
+import os
 
 class SimpleForm(forms.Form):
     name = forms.CharField(max_length = 100)
@@ -12,7 +13,14 @@ class OtherForm(forms.Form):
     email = forms.EmailField()
 
 def index(request):
-    return render_to_response('index.html')
+    fp = open(os.path.join(
+        os.path.dirname(__file__), '..', '..', 'README'
+    ))
+    readme = fp.read()
+    fp.close()
+    return render_to_response('index.html', {
+        'README': readme,
+    })
 
 @csrf_protect
 def templated(request):
