@@ -113,3 +113,27 @@ class HandRolledFormsTest(TestCase):
             'name': 'Test',
         })
         self.assertEqual(response3.content, 'OK')
+
+class IdentifierTest(TestCase):
+    urls = 'django_safeform.test_views'
+    
+    def test_identifier_creates_tokens_that_only_work_with_one_form(self):
+        # Get form token from a regular form
+        response = self.client.get('/safe-basic-form/')
+        token = test_utils.extract_input_tags(response.content)['csrf_token']
+        self.assert_(token.startswith('default:'))
+        response = self.client.post('/identifier-form/', {
+            'name': 'Test',
+            'csrf_token': token,
+        })
+        self.assert_(CSRF_INVALID_MESSAGE in response.content)
+        
+        # Now use the correct token
+        response = self.client.get('/identifier-form/')
+        token = test_utils.extract_input_tags(response.content)['csrf_token']
+        self.assert_(token.startswith('identifier-form:'))
+        response = self.client.post('/identifier-form/', {
+            'name': 'Test',
+            'csrf_token': token,
+        })
+        self.assertEqual(response.content, 'Valid: Test')

@@ -31,7 +31,10 @@ def SafeForm(form_class,
                 )
             else:
                 initial_data = kwds.get('initial', {})
-                initial_data['csrf_token'] = new_csrf_token(self.request)
+                initial_data['csrf_token'] = new_csrf_token(
+                    self.request,
+                    identifier=identifier,
+                )
                 kwds['initial'] = initial_data
                 super(InnerSafeForm, self).__init__(*args, **kwds)
             self.fields['csrf_token'] = forms.CharField(
@@ -42,7 +45,9 @@ def SafeForm(form_class,
         def clean(self):
             cleaned_data = super(InnerSafeForm, self).clean()
             token = cleaned_data.get('csrf_token', '')
-            if not token or not validate_csrf_token(token, self.request):
+            if not token or not validate_csrf_token(
+                    token, self.request, identifier=identifier
+                ):
                 # Our form is "in flight", and we want the user to be able to 
                 # successfully resubmit it. This means we need to include a 
                 # freshly generated CSRF token in the hidden form field for 

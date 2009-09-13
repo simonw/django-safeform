@@ -228,6 +228,59 @@ If you do this, you will need to ensure the csrf_token is included in Ajax
 POST requests yourself. One way to do this would be to read the token out of 
 the first hidden input field with name="csrf_token" using the JavaScript DOM.
 
+Enhancing security
+------------------
+
+By default, the form tokens served up in hidden fields are valid for POST 
+submissions to any form on the site (for the user with that cookie) and never 
+expire. You can limit the scope of the tokens in two ways - by tying them to 
+a specific form, or by causing them to expire after a number of seconds.
+
+To tie a token to one specific form, simply pass an identifier argument to 
+the SafeForm decorator:
+
+    ChangePasswordForm = SafeForm(ChangePasswordForm,
+        identifier='change-password'
+    )
+
+Tokens generated for that form will now only allow submissions back to the 
+same form. If you are using the csrf_utils module directly (in a hand-rolled 
+form for example) you should pass identifier arguments to both the 
+new_csrf_token and validate_csrf_token functions:
+
+    token = csrf_utils.new_csrf_token(request, identifier='my-custom-form')
+    # ... later ...
+    token_ok = csrf_utils.validate_csrf_token(
+        token, request, identifier='my-custom-form'
+    )
+    if not token_ok:
+        return HttpResponse('Invalid CSRF token')
+
+When a token expires, the user will see the CSRF error message described above
+but will not lose their form submission, so don't worry too much about the 
+consequences of setting a strict timeout.
+
+To cause your form tokens to expire, use the expire_after argument in your 
+call to the SafeForm class decorator:
+
+    ChangePasswordForm = SafeForm(ChangePasswordForm,
+        identifier='change-password',
+        expire_after=24 * 60 * 60 # Expire after 24 hours
+    )
+
+Using csrf_utils directly, pass that argument to the validate_csrf_token 
+function:
+
+    token_ok = csrf_utils.validate_csrf_token(
+        token, request, identifier='my-custom-form', expire_after=24 * 60 * 60
+    )
+
+The default expire_after value is set by the CSRF_TOKENS_EXPIRE_AFTER setting,
+which defaults to None. If you want all of your CSRF tokens to expire, add 
+this to your settings.py file:
+
+    CSRF_TOKENS_EXPIRE_AFTER = 24 * 60 * 60
+
 Design notes
 ------------
 
@@ -250,7 +303,6 @@ otherwise also need to provide SafeModelForm, SafeFormSet and so on.
 TODO
 ----
 
-* Add, test and document support for changing the CSRF identifier
 * Add, test and document settings for expiring tokens after a certain time
 
 Alternative approaches

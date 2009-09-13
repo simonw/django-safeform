@@ -16,9 +16,7 @@ SafeOtherForm = SafeForm(OtherForm)
 def safe_form_view(request):
     form = SafeBasicForm(request)
     if form.is_valid():
-        return HttpResponse(
-            'Valid: %s' % form.cleaned_data['name']
-        )
+        return HttpResponse('Valid: %s' % form.cleaned_data['name'])
     return HttpResponse("""
         <form action="." method="post">
         %s
@@ -103,6 +101,14 @@ def safe_formset_view(request):
         formset.management_form
     ))
 
+@csrf_protect
+def identifier_form_view(request):
+    form = SafeForm(BasicForm, identifier='identifier-form')(request)
+    if form.is_valid():
+        return HttpResponse('Valid: %s' % form.cleaned_data['name'])
+    return HttpResponse(form.as_p())
+
+
 urlpatterns = patterns('',
     (r'^safe-basic-form/$', safe_form_view),
     (r'^two-forms/$', two_forms_view),
@@ -110,4 +116,5 @@ urlpatterns = patterns('',
     (r'^safe-form-custom-message/$', safe_form_custom_message_view),
     (r'^safe-form-ajax-skips-false/$', safe_form_ajax_skips_false_view),    
     (r'^hand-rolled/$', hand_rolled_view),
+    (r'^identifier-form/$', identifier_form_view),
 )
