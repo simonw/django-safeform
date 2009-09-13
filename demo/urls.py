@@ -7,5 +7,6 @@ from django.conf.urls.defaults import *
 urlpatterns = patterns('',
     (r'^$', 'demoforms.views.index'),
     (r'^clear/$', 'demoforms.views.clear'),
+    (r'^templated/$', 'demoforms.views.templated'),
     (r'^hand-rolled/$', 'demoforms.views.hand_rolled'),
 )

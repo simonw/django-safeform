@@ -6,7 +6,7 @@ required.
 
 There are two steps to protecting a django.forms form:
 
-1. Wrap it with the SafeForm class decorator. This adds a hidden _csrf_token 
+1. Wrap it with the SafeForm class decorator. This adds a hidden csrf_token 
    field to it along with validation logic for checking if that token has 
    the correct value. It also changes the signature of the form class 
    slightly, see example below.
@@ -61,7 +61,6 @@ protect too.
 Todo
 ----
 
-* Ensure everything works when using custom templates to render the form
 * Test this works with ModelForms
 * Figure out how this will work with FormSets
 * Document how to use this with hand-rolled forms (not using django.forms)

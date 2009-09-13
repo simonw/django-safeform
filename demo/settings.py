@@ -73,4 +73,5 @@ TEMPLATE_DIRS = (
 
 INSTALLED_APPS = (
     'django_safeform',
+    'demoforms',
 )

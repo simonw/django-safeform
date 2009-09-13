@@ -28,17 +28,17 @@ class SafeBasicFormTest(TestCase):
     def test_submission_with_correct_csrf_token_works(self):
         response = self.client.get('/safe-basic-form/')
         inputs = extract_input_tags(response.content)
-        self.assert_(inputs.has_key('_csrf_token'))
-        token = inputs['_csrf_token']
+        self.assert_(inputs.has_key('csrf_token'))
+        token = inputs['csrf_token']
         response2 = self.client.post('/safe-basic-form/', {
-            '_csrf_token': token,
+            'csrf_token': token,
             'name': 'Test',
         })
         self.assertEqual(response2.content, 'Valid: Test')
     
     def test_submission_with_bad_token_fails(self):
         response = self.client.post('/safe-basic-form/', {
-            '_csrf_token': 'bad-taken',
+            'csrf_token': 'bad-taken',
             'name': 'Test',
         })
         self.assert_(CSRF_INVALID_MESSAGE in response.content)
@@ -51,16 +51,16 @@ class HandRolledFormsTest(TestCase):
         response = self.client.get('/hand-rolled/')
         self.assert_(response.cookies.has_key('_csrf_cookie'))
         inputs = extract_input_tags(response.content)
-        self.assert_(inputs.has_key('_csrf_token'))
+        self.assert_(inputs.has_key('csrf_token'))
         
         response2 = self.client.post('/hand-rolled/', {
-            '_csrf_token': 'bad',
+            'csrf_token': 'bad',
             'name': 'Test',
         })
         self.assertEqual(response2.content, 'Invalid CSRF token')
         
         response3 = self.client.post('/hand-rolled/', {
-            '_csrf_token': inputs['_csrf_token'],
+            'csrf_token': inputs['csrf_token'],
             'name': 'Test',
         })
         self.assertEqual(response3.content, 'OK')

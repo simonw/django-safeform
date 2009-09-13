@@ -1,0 +1,7 @@
+<form action="." method="post">
+{{ form.non_field_errors }}
+<p>{{ form.name.errors }}{{ form.name.label_tag }} {{ form.name }}</p>
+<p><input type="submit">{{ form.csrf_token }}</p>
+<p>Current cookie is: {{ csrf_cookie }} (<a href="/clear/">clear</a>)<br>
+(Cookie headers may have been sent with this response)</p>
+</form>

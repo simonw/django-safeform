@@ -1,7 +1,7 @@
 """
 Simple functions for extracting input tags from HTML - when you're testing 
 CSRF protection you need to be able to pull out the
-    <input type="hidden" name="_csrf_token" value="...">
+    <input type="hidden" name="csrf_token" value="...">
 tags so you can POST a correct value.
 """
 import re
