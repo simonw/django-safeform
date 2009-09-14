@@ -17,8 +17,7 @@ Run "./manage.py runserver" in the examples folder to start a Django server
 demonstrating the functionality of the library. Use "./manage.py test" in the 
 same directory to run the unit tests.
 
-Example usage
--------------
+Example usage::
 
     from django import forms
     from django.http import HttpResponse
@@ -42,11 +41,11 @@ Example usage
         })
 
 A: Note that we pass the whole request object to the constructor, instead of
-   just passing request.POST.
+just passing request.POST.
 
 B: A pleasant side-effect of SafeForm is that you no longer need to check to 
-   see if request.method == 'POST' in order to decide whether or not to bind 
-   a form to a set of input data - SafeForm handles this for you.
+see if request.method == 'POST' in order to decide whether or not to bind a 
+form to a set of input data - SafeForm handles this for you.
 
 Custom form templates
 ---------------------
@@ -54,7 +53,7 @@ Custom form templates
 If your template uses one of the form rendering helper methods such as 
 {{ form.as_p }} the hidden csrf_token field will be output automatically. If 
 you are rendering the form using a custom template you will need to remember 
-to output that field in your template explicitly. Here's an example:
+to output that field in your template explicitly. Here's an example::
 
     <form action="/change-password/" method="post">
         {{ form.non_field_errors }}
@@ -82,7 +81,7 @@ Protecting forms that do not use django.forms
 If you are not using the django.forms framework - for example you are writing 
 forms with hand-written HTML and pulling submitted data directly from 
 request.POST - you can still add CSRF protection to your forms using the 
-@csrf_protect decorator in conjunction with the csrf_utils module:
+@csrf_protect decorator in conjunction with the csrf_utils module::
 
     from django_safeform import csrf_protect, csrf_utils
     
@@ -121,7 +120,7 @@ example, if you are using formsets) you still only need to include a single
 csrf_token field for the overall form. In this case, rather than applying the 
 SafeForm decorator to each of the form classes, it makes more sense to have a 
 single standalone SafeForm instance within the overall form. The CsrfForm 
-class is designed to handle this exact use-case. Here's how to use it:
+class is designed to handle this exact use-case. Here's how to use it::
     
     from django import forms
     from django.forms.formsets import formset_factory
@@ -153,7 +152,7 @@ class is designed to handle this exact use-case. Here's how to use it:
 
 The formset is used in the same way as usual. The CSRF protection is 
 implemented entirely by the separate CsrfForm instance. In the template, the 
-CsrfForm should be output using {{ csrf_form }} like this:
+CsrfForm should be output using {{ csrf_form }} like this::
 
     <form action="." method="post">
         {{ csrf_form }}
@@ -173,7 +172,7 @@ message should be displayed.
 
 If you want to include the hidden input field in a different location to the 
 error message, you can use {{ csrf_form.csrf_token }} to output the hidden 
-field and {{ csrf_form.non_field_errors }} to output the error message:
+field and {{ csrf_form.non_field_errors }} to output the error message::
 
     <form action="." method="post">
         {{ csrf_form.non_field_errors }}
@@ -191,7 +190,7 @@ field and {{ csrf_form.non_field_errors }} to output the error message:
 Changing the CSRF error message
 -------------------------------
 
-The default message shown to the user if the CSRF check fails is:
+The default message shown to the user if the CSRF check fails is::
 
     Form session expired - please resubmit
 
@@ -201,7 +200,7 @@ messages before. A "form session" seems like a reasonable metaphor for what
 is going on under the hood.
 
 If you dislike this message, you can over-ride it in your call to the 
-SafeForm class decorator:
+SafeForm class decorator::
 
     ChangePasswordForm = SafeForm(ChangePasswordForm,
         invalid_message='CSRF check failed'
@@ -218,7 +217,7 @@ libraries. Protection is not needed here because it is not possible to forge
 HTTP headers when committing a CSRF attack using an HTML form.
 
 If you are ultra-paranoid and want to apply CSRF protection even to requests 
-with that header, you can disable the Ajax special case like this:
+with that header, you can disable the Ajax special case like this::
 
     ChangePasswordForm = SafeForm(ChangePasswordForm,
         ajax_skips_check=False
@@ -237,7 +236,7 @@ expire. You can limit the scope of the tokens in two ways - by tying them to
 a specific form, or by causing them to expire after a number of seconds.
 
 To tie a token to one specific form, simply pass an identifier argument to 
-the SafeForm decorator:
+the SafeForm decorator::
 
     ChangePasswordForm = SafeForm(ChangePasswordForm,
         identifier='change-password'
@@ -246,7 +245,7 @@ the SafeForm decorator:
 Tokens generated for that form will now only allow submissions back to the 
 same form. If you are using the csrf_utils module directly (in a hand-rolled 
 form for example) you should pass identifier arguments to both the 
-new_csrf_token and validate_csrf_token functions:
+new_csrf_token and validate_csrf_token functions::
 
     token = csrf_utils.new_csrf_token(request, identifier='my-custom-form')
     # ... later ...
@@ -257,7 +256,7 @@ new_csrf_token and validate_csrf_token functions:
         return HttpResponse('Invalid CSRF token')
 
 To cause your form tokens to expire, use the expire_after argument in your 
-call to the SafeForm class decorator:
+call to the SafeForm class decorator::
 
     ChangePasswordForm = SafeForm(ChangePasswordForm,
         identifier='change-password',
@@ -265,7 +264,7 @@ call to the SafeForm class decorator:
     )
 
 If using csrf_utils directly, pass that argument to the validate_csrf_token 
-function:
+function::
 
     token_ok = csrf_utils.validate_csrf_token(
         token, request, identifier='my-custom-form', expire_after=24 * 60 * 60
@@ -273,7 +272,7 @@ function:
 
 The default expire_after value is set by the CSRF_TOKENS_EXPIRE_AFTER setting,
 which defaults to None. If you want all of your CSRF tokens to expire, add 
-this to your settings.py file:
+this to your settings.py file::
 
     CSRF_TOKENS_EXPIRE_AFTER = 24 * 60 * 60
 
@@ -310,15 +309,15 @@ Alternative approaches
 ----------------------
 
 Pure middleware:
-- breaks with etags
-- rewrites HTML
-- doesn't work with streaming
-- you have to decorate things as exempt
-- potential leakage of external forms
-- XHTML v.s. HTML
+ - breaks with etags
+ - rewrites HTML
+ - doesn't work with streaming
+ - you have to decorate things as exempt
+ - potential leakage of external forms
+ - XHTML v.s. HTML
 
 Middleware and template tags and RequestContext:
-- uses a view middleware
-- applying by default is error prone
-- if user disables middleware, admin becomes insecure
-- requires RequestContext
+ - uses a view middleware
+ - applying by default is error prone
+ - if user disables middleware, admin becomes insecure
+ - requires RequestContext
