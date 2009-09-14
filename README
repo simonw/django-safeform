@@ -50,7 +50,7 @@ form to a set of input data - SafeForm handles this for you.
 Installation
 ------------
 
-django-safeform is in PyPI: http://pypi.python.org/pypi/django-safeform::
+django-safeform is in PyPI: http://pypi.python.org/pypi/django-safeform ::
 
     pip install django-safeform
     - OR -
