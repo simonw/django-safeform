@@ -300,6 +300,12 @@ The original idea was to have an alternative Form base class called SafeForm -
 this was replaced with a class decorator when we realised that we would 
 otherwise also need to provide SafeModelForm, SafeFormSet and so on.
 
+Credits
+-------
+
+This library was developed out of a discussion with Russell Keith-Magee, 
+Andrew Godwin and Armin Ronacher at the DjangoCon 2009 sprints.
+
 Alternative approaches
 ----------------------
 
