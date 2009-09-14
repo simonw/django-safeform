@@ -318,7 +318,7 @@ Pure middleware:
 - XHTML v.s. HTML
 
 Middleware and template tags and RequestContext:
-- uses a view decorator
+- uses a view middleware
 - applying by default is error prone
 - if user disables middleware, admin becomes insecure
 - requires RequestContext
