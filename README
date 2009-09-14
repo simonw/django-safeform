@@ -47,6 +47,15 @@ B: A pleasant side-effect of SafeForm is that you no longer need to check to
 see if request.method == 'POST' in order to decide whether or not to bind a 
 form to a set of input data - SafeForm handles this for you.
 
+Installation
+------------
+
+django-safeform is in PyPI: http://pypi.python.org/pypi/django-safeform::
+
+    pip install django-safeform
+    - OR -
+    easy_install django-safeform
+
 Custom form templates
 ---------------------
 
