@@ -26,20 +26,16 @@ def SafeForm(form_class,
         expire_after=not_set
     ):
     class InnerSafeForm(form_class):
-        def __init__(self, request, *args, **kwds):
+        def __init__(self, request, data=None, files=None, *args, **kwargs):
             self.request = request
-            if request.method == 'POST':
-                super(InnerSafeForm, self).__init__(
-                    request.POST, *args, **kwds
-                )
-            else:
-                initial_data = kwds.get('initial', {})
+            if data is None and files is None:
+                initial_data = kwargs.get('initial', {})
                 initial_data['csrf_token'] = new_csrf_token(
                     self.request,
                     identifier=identifier,
                 )
-                kwds['initial'] = initial_data
-                super(InnerSafeForm, self).__init__(*args, **kwds)
+                kwargs['initial'] = initial_data
+            super(InnerSafeForm, self).__init__(data, files, *args, **kwargs)
             self.fields['csrf_token'] = forms.CharField(
                 widget = HiddenInputNoId,
                 required = False,

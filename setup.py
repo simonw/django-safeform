@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name = 'django-safeform',
-    version = '1.0.1',
+    version = '2.0.0',
     url = 'http://github.com/simonw/django-safeform',
     author = 'Simon Willison',
     author_email = 'simon+safeform@simonwillison.net',

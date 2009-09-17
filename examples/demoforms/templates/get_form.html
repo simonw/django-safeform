@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}: Form{% endblock %}
+
+{% block content %}
+<form action="." method="get">
+{{ form.non_field_errors }}
+<p>{{ form.name.errors }}{{ form.name.label_tag }} {{ form.name }}</p>
+<p><input type="submit">{{ form.csrf_token }}</p>
+<p>CSRF cookie is: {{ csrf_cookie }} (<a href="/clear/">clear</a>)<br>
+</form>
+{% endblock %}

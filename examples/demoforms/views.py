@@ -25,11 +25,25 @@ def index(request):
 @csrf_protect
 def templated(request):
     form = SafeSimpleForm(request)
-    if form.is_valid():
-        return HttpResponse(
-            'Valid form submitted: %s' % form.cleaned_data['name']
-        )
+    if request.method == 'POST':
+        form = SafeSimpleForm(request, request.POST)
+        if form.is_valid():
+            return HttpResponse(
+                'Valid form submitted: %s' % form.cleaned_data['name']
+            )
     return render_to_response('form.html', {
+        'form': form,
+        'csrf_cookie': request.COOKIES.get('_csrf_cookie', 'NOT SET'),
+    })
+
+@csrf_protect
+def get_form(request):
+    form = SafeSimpleForm(request)
+    if request.GET:
+        form = SafeSimpleForm(request, request.GET)
+        if form.is_valid():
+            return HttpResponse('Valid: %s' % form.cleaned_data['name'])
+    return render_to_response('get_form.html', {
         'form': form,
         'csrf_cookie': request.COOKIES.get('_csrf_cookie', 'NOT SET'),
     })
@@ -49,9 +63,12 @@ def hand_rolled(request):
 
 @csrf_protect
 def custom_message(request):
-    form = SafeForm(SimpleForm, invalid_message='Oh no!')(request)
-    if form.is_valid():
-        return HttpResponse('Valid')
+    Form = SafeForm(SimpleForm, invalid_message='Oh no!')
+    form = Form(request)
+    if request.method == 'POST':
+        form = Form(request, request.POST)
+        if form.is_valid():
+            return HttpResponse('Valid')
     return render_to_response('form.html', {
         'form': form,
         'csrf_cookie': request.COOKIES.get('_csrf_cookie', 'NOT SET'),
@@ -63,6 +80,7 @@ def multiple_forms(request):
     simple_form = SimpleForm()
     other_form = OtherForm()
     if request.method == 'POST':
+        csrf_form = CsrfForm(request, request.POST)
         simple_form = SimpleForm(request.POST)
         other_form = OtherForm(request.POST)
         if csrf_form.is_valid() and \
@@ -90,6 +108,7 @@ def formset(request):
     csrf_form = CsrfForm(request)
     formset = PersonFormSet()
     if request.method == 'POST':
+        csrf_form = CsrfForm(request, request.POST)
         formset = PersonFormSet(request.POST)
         if csrf_form.is_valid() and formset.is_valid():
             return HttpResponse('Valid: %s' % ', '.join([

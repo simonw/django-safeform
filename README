@@ -27,25 +27,41 @@ Example usage::
     class ChangePasswordForm(forms.Form):
         password = forms.CharField(widget = forms.PasswordInput)
         password2 = forms.CharField(widget = forms.PasswordInput)
-    
     ChangePasswordForm = SafeForm(ChangePasswordForm)
     
     @csrf_protect
     def change_password(request):
         form = ChangePasswordForm(request) # A
-        if form.is_valid(): # B
-            # ... change the user's password here
-            return HttpResponse('Thank you')
+        if request.method == 'POST':
+            form = ChangePasswordForm(request, request.POST)
+            if form.is_valid():
+                # ... change the user's password here
+                return HttpResponse('Thank you')
         return render_to_response('change_password.html', {
             'form': form,
         })
 
-A: Note that we pass the whole request object to the constructor, instead of
-just passing request.POST.
+Note that the form constructor signature has changed - we now pass the request
+object as the first argument.
 
-B: A pleasant side-effect of SafeForm is that you no longer need to check to 
-see if request.method == 'POST' in order to decide whether or not to bind a 
-form to a set of input data - SafeForm handles this for you.
+Revision history
+----------------
+
+v2.0.0 - 18 September 2009
+
+Breaks backward compatibility with previous release - no longer changes the 
+form constructor signature to take just the request object and decide whether 
+or not to bind the form based on the request method. You now need to make that 
+decision yourself in your view code (just as you do with regular Django 
+forms). All examples and tests have been updated.
+
+v1.0.1 - 17 September 2009
+
+Documentation fixes.
+
+v1.0.0 - 17 September 2009
+
+Initial release.
 
 Installation
 ------------
@@ -147,6 +163,7 @@ class is designed to handle this exact use-case. Here's how to use it::
         csrf_form = CsrfForm(request)
         formset = PersonFormSet()
         if request.method == 'POST':
+            csrf_form = CsrfForm(request, request.POST)
             formset = PersonFormSet(request.POST)
             if csrf_form.is_valid() and formset.is_valid():
                 return HttpResponse('Valid: %s' % ', '.join([
@@ -289,6 +306,34 @@ When a token expires, the user will see the CSRF error message described above
 but will not lose their form submission, so don't worry too much about the 
 consequences of setting a strict timeout.
 
+Protecting GET forms
+--------------------
+
+The examples so far have all been for forms submitted using the POST verb. It 
+is also possible to protect GET forms against CSRF, but you should very rarely
+need to do this. HTTP specifies that actions submitted via GET should be 
+idempotent, which is generally interpreted as ruling that they should not 
+cause state changes to your system. As such, an authenticated GET request 
+should not be able to cause any damage.
+
+Many GET forms are specifically designed to allow links from other sites to 
+trigger an action - search forms for example. If your application has GET 
+requests that require CSRF protection you should probably rethink the design 
+of your application.
+
+If you decide you do need to add CSRF protection to a GET form, you should be 
+aware that it is much easier for csrf_tokens used in GET requests to "leak"
+to an external attacker. URLs show up in Browser referral headers, so links 
+to external sites from your CSRF protected GET page will inadvertently pass 
+the token on to those sites. Your users may also accidentally share their 
+CSRF tokens by pasting them in to e-mails or bookmarking them on link sharing 
+sites.
+
+Consequently, any CSRF tokens used in GET forms should take advantage of the 
+extra security features documented above - they should use an identifier to 
+lock the token down just to that form and should specify a strict expiry time 
+to limit the damage that can be caused should the token accidentally leak.
+
 Design notes
 ------------
 
@@ -313,6 +358,12 @@ Credits
 
 This library was developed out of a discussion with Russell Keith-Magee, 
 Andrew Godwin and Armin Ronacher at the DjangoCon 2009 sprints.
+
+TODO
+----
+
+ - Figure out what to do about protecting forms which already alter the 
+   Form constructor signature themselves.
 
 Alternative approaches
 ----------------------

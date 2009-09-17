@@ -63,6 +63,18 @@ class SafeBasicFormTest(TestCase):
         }, HTTP_X_REQUESTED_WITH = 'XMLHttpRequest')
         self.assert_(CSRF_INVALID_MESSAGE in response.content)
 
+class GetFormTest(TestCase):
+    urls = 'django_safeform.test_views'
+    
+    def test_can_protect_get_as_well_as_post(self):
+        response = self.client.get('/safe-get-form/')
+        token = test_utils.extract_input_tags(response.content)['csrf_token']
+        response2 = self.client.get('/safe-get-form/', {
+            'csrf_token': token,
+            'name': 'Test',
+        })
+        self.assertEqual(response2.content, 'Valid: Test')
+
 class MultipleFormsTest(TestCase):
     urls = 'django_safeform.test_views'
     
