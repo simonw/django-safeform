@@ -44,6 +44,15 @@ Example usage::
 Note that the form constructor signature has changed - we now pass the request
 object as the first argument.
 
+Status and discussion
+---------------------
+
+This code is still being actively developed (the version number should really 
+be 0.2, not 2.0) and discussed on the django-developers mailing list:
+
+ - Thread: http://groups.google.com/group/django-developers/browse_thread/thread/3d2dc750082103dc/
+ - Detailed critique by Luke Plant: http://groups.google.com/group/django-developers/msg/502475adb9f138d5
+
 Revision history
 ----------------
 
