@@ -55,6 +55,8 @@ or not to bind the form based on the request method. You now need to make that
 decision yourself in your view code (just as you do with regular Django 
 forms). All examples and tests have been updated.
 
+Added CsrfTestCase to test_utils, to simplify testing of CSRF protected forms.
+
 v1.0.1 - 17 September 2009
 
 Documentation fixes.
@@ -334,6 +336,60 @@ extra security features documented above - they should use an identifier to
 lock the token down just to that form and should specify a strict expiry time 
 to limit the damage that can be caused should the token accidentally leak.
 
+Unit testing
+------------
+
+Properly unit testing CSRF protection is significantly more complicated than 
+a regular unit test, as you need to first GET the initial form, then extract 
+the csrf_token field from it, then submit that as part of the POST. The unit 
+tests that ship with django_safeform show how to do this.
+
+You can shortcut this process by using CsrfTestCase as the base class for your
+unit tests. This swaps in an alternative Client implementation which causes 
+POST requests using client.post() to automatically include a valid CSRF token.
+
+Here's an example test using CsrfTestCase::
+
+    from django_safeform import test_utils
+    
+    class SubmitTestCase(test_utils.CsrfTestCase):
+        def test_submission_with_correct_csrf_token_works(self):
+            response = self.client.post('/safe-basic-form/', {
+                'name': 'Test',
+            })
+            self.assertEqual(response.content, 'Valid: Test')
+
+If you are using the CsrfTestCase subclass but you do NOT wish to include the 
+csrf_token automatically in one of your tests, pass a csrf=False argument to 
+the client.post() method::
+
+    def test_submission_without_csrf_token(self):
+        response = self.client.post('/safe-basic-form/', {
+            'name': 'Test',
+        }, csrf=False)
+        self.assert_(CSRF_INVALID_MESSAGE in response.content)
+
+If you are protecting your forms with a custom form identifier, you should 
+pass that identifier as the csrf argument::
+
+    def test_change_password(self):
+        response = self.client.post('/change-password/', {
+            'password': 'new-password',
+            'password2': 'new-password',
+        }, csrf='change-password')
+        # ...
+
+If you are already using your own custom TestCase subclass and do not wish to 
+use CsrfTestCase, you can instantiate the special client in your own setUp
+method::
+    
+    from django_safeform import test_utils
+    from django.test import TestCase
+    
+    class MyTestCaseSubclass(TestCase):
+        def setUp(self):
+            self.client = test_utils.CsrfClient()
+
 Design notes
 ------------
 
@@ -356,14 +412,19 @@ otherwise also need to provide SafeModelForm, SafeFormSet and so on.
 Credits
 -------
 
-This library was developed out of a discussion with Russell Keith-Magee, 
-Andrew Godwin and Armin Ronacher at the DjangoCon 2009 sprints.
+This library was developed from a discussion with Russell Keith-Magee, 
+Andrew Godwin and Armin Ronacher at the DjangoCon 2009 sprints, and improved 
+based on extensive feedback from Luke Plant on the django-developers mailing 
+list.
 
 TODO
 ----
 
  - Figure out what to do about protecting forms which already alter the 
    Form constructor signature themselves.
+ - _csrf_token_from_request should throw error if cookie has not been set by 
+   the csrf_protect decorator.
+ - Improved support for unit testing CSRF protected forms.
 
 Alternative approaches
 ----------------------
@@ -381,3 +442,4 @@ Middleware and template tags and RequestContext:
  - applying by default is error prone
  - if user disables middleware, admin becomes insecure
  - requires RequestContext
+ - form submissions are lost on CSRF failure

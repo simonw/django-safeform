@@ -201,3 +201,29 @@ class ExpireAfterTest(TestCase):
             self.assert_(CSRF_INVALID_MESSAGE in response.content)
             settings.CSRF_TOKENS_EXPIRE_AFTER = None
         inner()
+
+class CsrfTestCaseTestCase(test_utils.CsrfTestCase):
+    urls = 'django_safeform.test_views'
+    
+    def test_submission_with_correct_csrf_token_works(self):
+        response = self.client.post('/safe-basic-form/', {
+            'name': 'Test',
+        })
+        self.assertEqual(response.content, 'Valid: Test')
+    
+    def test_submission_without_token(self):
+        response = self.client.post('/safe-basic-form/', {
+            'name': 'Test',
+        }, csrf=False)
+        self.assert_(CSRF_INVALID_MESSAGE in response.content)
+    
+    def test_identifier_creates_tokens_that_only_work_with_one_form(self):
+        response = self.client.post('/identifier-form/', {
+            'name': 'Test',
+        })
+        self.assert_(CSRF_INVALID_MESSAGE in response.content)
+        # Now use the correct token
+        response = self.client.post('/identifier-form/', {
+            'name': 'Test 2',
+        }, csrf='identifier-form')
+        self.assertEqual(response.content, 'Valid: Test 2')
